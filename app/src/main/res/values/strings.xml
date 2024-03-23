@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">PetManager_JetpackCompose</string>
+    <string name="title_activity_login">LoginActivity</string>
+</resources>
