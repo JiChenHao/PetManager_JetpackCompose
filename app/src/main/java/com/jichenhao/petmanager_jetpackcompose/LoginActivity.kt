@@ -4,29 +4,25 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.jichenhao.petmanager_jetpackcompose.ui.login.LoginScreen
 import com.jichenhao.petmanager_jetpackcompose.ui.login.LoginViewModel
 import com.jichenhao.petmanager_jetpackcompose.ui.theme.PetManager_JetpackComposeTheme
-import dagger.hilt.android.AndroidEntryPoint
 
 
-//一旦进入主页面，就应该使用Android推荐的单Activity编程框架了
-//使用ViewModel存放数据，使用Composable函数显示UI界面，使用Navigation实现UI界面之间的跳转
-class MainActivity : ComponentActivity() {
+// 只要进到这个Activity中的时候，一定是：
+// Application中的登录状态为false && login_state_prefs中的登录状态为false
+class LoginActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // START======初始化ViewModel层，其中的数据源Repository均在Application中做唯一实例的初始化
-
-        // END=================ViewMode============================
-        Log.d("MainActivity", "MainActivity被调用了")
+        val loginViewModel = LoginViewModel(PetManagerApplication.loginRepository)
+        Log.d("LoginActivity", "LoginActivity被调用了")
         setContent {
             PetManager_JetpackComposeTheme {
                 // A surface container using the 'background' color from the theme
@@ -34,16 +30,15 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MyNavGraph()
+                    LoginScreen(loginViewModel = loginViewModel)
                 }
             }
         }
     }
 }
 
-
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
+fun Greeting3(name: String, modifier: Modifier = Modifier) {
     Text(
         text = "Hello $name!",
         modifier = modifier
@@ -52,8 +47,8 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
+fun GreetingPreview4() {
     PetManager_JetpackComposeTheme {
-        Greeting("Android")
+        Greeting3("Android")
     }
 }

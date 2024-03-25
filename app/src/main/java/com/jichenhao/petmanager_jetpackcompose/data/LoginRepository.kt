@@ -37,8 +37,6 @@ class LoginRepository() {
         //=====TEST
         Log.d("我的登录", userList.toString())
         //=====END_TEST
-
-
         //因为Android是不允许主线程中进行网络请求的
         Log.d("我的登录", "Repository层login执行")
         val userToInternet = UserInfo(email, password)
@@ -47,9 +45,18 @@ class LoginRepository() {
             Log.d("我的登录", "开始获取网络请求")
             val loginResult = PetManagerNetWork.login(userToInternet)
             Log.d("我的登录", "网络请求返回的message是${loginResult.message}")
-            if (loginResult.success) {
-                val loginResultBoolean = loginResult.data//布尔值
-                com.jichenhao.petmanager_jetpackcompose.data.local.Result.Success(loginResultBoolean)
+            if (loginResult.success) {//如果网络没有问题
+                val loginResultBoolean = loginResult.data//布尔值，代表登录结果
+                if (loginResultBoolean) {
+                    com.jichenhao.petmanager_jetpackcompose.data.local.Result.Success(
+                        loginResultBoolean
+                    )
+                } else {
+                    com.jichenhao.petmanager_jetpackcompose.data.local.Result.Error(
+                        IOException("Error WrongPassword ")
+                    )
+                }
+
             } else {
                 com.jichenhao.petmanager_jetpackcompose.data.local.Result.Error(
                     IOException("Error NetError ")
@@ -65,51 +72,5 @@ class LoginRepository() {
         }
         //emit实际上是类似于调用LiveData的setValue方法通知数据变化
         emit(result)
-    }
-
-
-    // 加载保存的凭证
-    fun loadSavedUser(context: Context): UserInfo {
-        val preferences = context.getSharedPreferences("login_prefs", Context.MODE_PRIVATE)
-        val email = preferences.getString("email", "")
-        val password = preferences.getString("password", "")
-        if (email != null && password != null) {
-            val userInfo = UserInfo(email = email, password = password)
-            return userInfo
-        } else {
-            return UserInfo("notFound", "notFound")
-        }
-    }
-
-    fun loadSavedisRememberMe(context: Context): Boolean {
-        val preferences = context.getSharedPreferences("login_prefs", Context.MODE_PRIVATE)
-        return preferences.getBoolean("rememberMe", false)
-    }
-
-    // 根据用户的选择，选择是否进行保存密码
-    fun saveCredentialsIfNeeded(
-        context: Context,
-        email: String,
-        password: String,
-        rememberMe: Boolean
-    ) {
-        val preferences = context.getSharedPreferences("login_prefs", Context.MODE_PRIVATE)
-        if (rememberMe) {
-            with(preferences.edit()) {
-                putString("email", email)
-                putString("password", password)
-                putBoolean("rememberMe", rememberMe)//将是否记住我也写进缓存
-                apply()
-            }
-        } else {
-            //清空缓存内容
-            // 如果不勾选“记住密码”，则清除之前存储的信息
-            with(preferences.edit()) {
-                remove("email")
-                remove("password")
-                putBoolean("rememberMe", false)//将是否记住我也写进缓存
-                apply()
-            }
-        }
     }
 }

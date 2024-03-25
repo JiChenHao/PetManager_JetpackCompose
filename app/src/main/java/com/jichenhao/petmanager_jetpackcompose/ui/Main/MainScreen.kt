@@ -1,43 +1,64 @@
 package com.jichenhao.petmanager_jetpackcompose.ui.Main
 
 import android.content.Context
+import android.content.Intent
+import android.util.Log
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import com.jichenhao.petmanager_jetpackcompose.LoginActivity
+import com.jichenhao.petmanager_jetpackcompose.MainActivity
 import com.jichenhao.petmanager_jetpackcompose.PetManagerApplication
-import com.jichenhao.petmanager_jetpackcompose.PetManagerApplication.Companion.context
-import com.jichenhao.petmanager_jetpackcompose.ui.login.LoginViewModel
 
 
 //这是登录之后看到的主页
 //看到这个页面的时候，全局变量loginRepository.user里面就已经保存了已经登录的用户的邮箱（唯一id）
 @Composable
 fun MainScreen(
-    loginViewModel: LoginViewModel,
-    onNavigateToLogin: () -> Unit
 ) {
+    Log.d("MainScreen", "MainScreen被调用了")
+    val context = LocalContext.current as ComponentActivity
     val loggedInUserEmail by remember {
-        mutableStateOf(loginViewModel.loggedInUserEmail.value)
+        mutableStateOf(PetManagerApplication.loggedInUser)
     }
-    Column {
+
+    Column(
+        //本列垂直居中
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Text(text = "This is MainScreen")
         if (loggedInUserEmail != null) {
             Text(text = "Welcome Mr.${loggedInUserEmail}")
         }
         Button(onClick = {
-            val preferences = context.getSharedPreferences("login_prefs", Context.MODE_PRIVATE)
+            // 如果选择logout，就要清楚内存和全局的登录状态
+            val preferences =
+                context.getSharedPreferences("login_state_prefs", Context.MODE_PRIVATE)
             with(preferences.edit()) {
-                putBoolean("isUserLoggedIn", true)
+                remove("email")
+                putBoolean("isUserLoggedIn", false)//更改登陆状态
                 apply()
             }
-            onNavigateToLogin()
+            //更新全局的登录状态
+            PetManagerApplication.loginState = false
+            PetManagerApplication.loggedInUser = "NOT LOGIN YET"
+            //跳转到主Activity
+            val intent = Intent(context, LoginActivity::class.java)
+            context.startActivity(intent)
+            context.finish()
         }) {
             Text(text = "Logout")
         }
     }
+
+
 }

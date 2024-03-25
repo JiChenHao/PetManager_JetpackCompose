@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
+import com.jichenhao.petmanager_jetpackcompose.PetManagerApplication
 import com.jichenhao.petmanager_jetpackcompose.data.LoginRepository
 import com.jichenhao.petmanager_jetpackcompose.data.dataObject.UserInfo
 import com.jichenhao.petmanager_jetpackcompose.data.local.Result
@@ -25,8 +26,9 @@ import kotlinx.coroutines.launch
 * 那么通常不需要手动创建 ViewModelFactory。
 * 然而，当你确实需要传递参数给 ViewModel 或者进行依赖注入时，仍然可以使用自定义的 ViewModelFactory。
 * 例如，使用 Hilt 进行依赖注入时，Hilt 会自动为你生成 ViewModel 工厂。
+* 这个ViewModel仅仅服务于LoginScreen
 * */
-class LoginViewModel(private val loginRepository: LoginRepository) :
+class LoginViewModel(private val loginRepository: LoginRepository = PetManagerApplication.loginRepository) :
     ViewModel() {
     //这个类如果经过ViewModelFactory初始化的话，其中的loginRepository也是PetManagerApplication中的
     //登陆结果，UI界面通过观察这个值更新UI界面，处理登陆结果
@@ -35,6 +37,15 @@ class LoginViewModel(private val loginRepository: LoginRepository) :
 
     private var _loggedInUserEmail = MutableLiveData<String>()
     val loggedInUserEmail get() = _loggedInUserEmail
+
+    //用来控制显示Dialog
+    private var _showDialog = MutableStateFlow<Boolean>(false)
+    val showDialog: MutableStateFlow<Boolean> get() = _showDialog
+
+    /*
+    *
+    * 登录
+    * */
     fun login(email: String, password: String) {
         Log.d("我的登录", "viewModel的login执行")
         viewModelScope.launch {
@@ -45,22 +56,39 @@ class LoginViewModel(private val loginRepository: LoginRepository) :
                 when (result) {
                     //登录成功
                     is Result.Success -> {
-                        _loginResult.value = true
+                        _loginResult.value = result.data
                         _loggedInUserEmail.value = email
                     }
 
                     is Result.Error -> {
+                        Log.d("我的登录", "ViewModel接收到ERROR${result.toString()}")
                         _loginResult.value = false
+                        showDialog()
                     }
 
                     is Result.Loading -> {
 
                     }
+
+                    else -> {}
                 }
 
             }
             // 可以在这里进一步处理登录成功或失败的情况，比如验证密码正确性等
         }
+    }
+
+    fun logout() {
+        _loginResult.value = false
+        _loggedInUserEmail.value = ""
+    }
+
+    private fun showDialog() {
+        _showDialog.value = true
+    }
+
+    fun unShowDialog() {
+        _showDialog.value = false
     }
 
 }
