@@ -5,6 +5,7 @@ import android.app.Application
 import android.content.Context
 import com.jichenhao.petmanager_jetpackcompose.data.local.LoginDataSource
 import com.jichenhao.petmanager_jetpackcompose.data.LoginRepository
+import dagger.hilt.android.HiltAndroidApp
 
 //全局类，继承自Application，用于更加方便的在项目的任何位置获取全局Context，
 //注意要更新注册的Application
@@ -15,7 +16,7 @@ class PetManagerApplication : Application() {
         lateinit var context: Context
 
         // 创建并暴露LoginRepository的单例
-        val loginRepository by lazy { LoginRepository(dataSource = LoginDataSource()) }
+        val loginRepository by lazy { LoginRepository() }
     }
 
     override fun onCreate() {

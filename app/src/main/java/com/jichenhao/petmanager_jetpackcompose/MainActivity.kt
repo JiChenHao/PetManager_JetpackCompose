@@ -12,11 +12,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.jichenhao.petmanager_jetpackcompose.ui.login.LoginViewModel
 import com.jichenhao.petmanager_jetpackcompose.ui.theme.PetManager_JetpackComposeTheme
+import dagger.hilt.android.AndroidEntryPoint
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // START======初始化ViewModel层，其中的数据源Repository均在Application中做唯一实例的初始化
+        val loginViewModel = LoginViewModel(PetManagerApplication.loginRepository)
+
+
+        // END=================ViewMode============================
         setContent {
             PetManager_JetpackComposeTheme {
                 // A surface container using the 'background' color from the theme
@@ -24,7 +31,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MyNavGraph()
+                    MyNavGraph(loginViewModel)
                 }
             }
         }

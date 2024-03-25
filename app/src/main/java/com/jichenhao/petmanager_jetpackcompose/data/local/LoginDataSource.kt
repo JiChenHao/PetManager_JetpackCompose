@@ -1,6 +1,7 @@
 package com.jichenhao.petmanager_jetpackcompose.data.local
 
 import com.jichenhao.petmanager_jetpackcompose.data.dataObject.LoggedInUser
+import com.jichenhao.petmanager_jetpackcompose.data.dataObject.UserInfo
 import java.io.IOException
 
 
@@ -16,6 +17,7 @@ class LoginDataSource {
 
     fun login(username: String, password: String): Result<LoggedInUser> {
         try {
+            val userInfo:UserInfo =
             //判断用户名和密码是否与数据源匹配
             if (username == "jichenhao01@qq.com" && password == "123456") {
                 //记录已登录的用户信息，并且在登陆期间一直保存

@@ -1,79 +1,72 @@
 package com.jichenhao.petmanager_jetpackcompose.data
 
 import android.content.Context
-import com.jichenhao.petmanager_jetpackcompose.data.dataObject.LoggedInUser
+import android.util.Log
+import androidx.lifecycle.liveData
 import com.jichenhao.petmanager_jetpackcompose.data.dataObject.UserInfo
-import com.jichenhao.petmanager_jetpackcompose.data.local.LoginDataSource
-import com.jichenhao.petmanager_jetpackcompose.data.local.Result
-
+import com.jichenhao.petmanager_jetpackcompose.data.network.PetManagerNetWork
+import kotlinx.coroutines.Dispatchers
+import java.io.IOException
+import javax.inject.Singleton
 
 /**
  * Class that requests authentication and user information from the remote data source and
  * maintains an in-memory cache of login status and user credentials information.
  */
 /*
-MVVM中的ViewModel层
-* LoginRepository: 这是一个接口或抽象类，它聚合了多个数据源（可能包括LoginDataSource），
-* 并提供统一的API给上层组件使用。
+MVVM中的仓库层
+* LoginRepository: 这是一个接口或抽象类，它聚合了多个数据源（本地的和网络的（使用接口连接）），
+* 并提供统一的API给上层组件（ViewModel）使用。
 * 也即是书上的仓库层，下面决定数据源来自什么地方。
 * 它处理数据获取逻辑，并决定何时从内存缓存、本地数据库还是远程服务器获取数据。
-* 它负责处理登录和登出功能，并维护一个内存中的已登录用户缓存
+* 它仅仅负责获取数据，至于获取数据之后的数据对比、数据处理等等，由其上层ViewModel层负责实现
 * 为了能够在APP启动后的任意时刻获取登陆信息，我们应该在自己的Application类中初始化这个类的实例
 * */
+@Singleton
+class LoginRepository() {
 
-class LoginRepository(val dataSource: LoginDataSource) {
 
-    // in-memory cache of the loggedInUser object
-    /*
-    * private set 是一个访问器修饰符，它表示 user 变量的 setter 方法（用于赋值）是私有的。
-    * 这意味着外部类不能直接修改 user 的值，只能通过 LoginRepository 类内部的方法来改变。
-    * */
-    var user: LoggedInUser? = null
-        private set
+    //为了将异步获取的数据以响应式编程的方式通知给上一层，通常会返回一个LiveData对象
+    //这里的LiveData()函数有一个特性：
+    //它可以自动构建并且返回一个LiveData对象，然后在它的代码块中提供一个挂起函数的上下文，
+    //这样我们就可以在LiveData()的代码块中调用任意的挂起函数了
+    //从网络中获取到我们需要的数据
+    suspend fun login(email: String, password: String) = liveData(Dispatchers.IO) {
+        //这里将liveData的线程参数类型指定成了Dispatchers.IO，这样代码块中所有的代码就运行在子线程中了
+        val userList = PetManagerNetWork.getUserList().data
+        //=====TEST
+        Log.d("我的登录", userList.toString())
+        //=====END_TEST
 
-    /*
-    * get() = user != null 定义了一个只读计算属性 isLoggedIn，当获取其值时，会返回 user 是否为非空的结果。
-    * 因此，不需要额外的存储空间来保存登录状态，而是每次调用时实时计算。
-    * */
-    val isLoggedIn: Boolean
-        get() = user != null
-    /*
-    * init 是一个特殊的方法，在创建类实例时自动调用。
-    * 在这个特定情况下，init 方法的主要目的是初始化类成员变量 user，将其设置为 null。
-    * 这确保了每次创建 LoginRepository 实例时，user 都会有一个初始值，即未登录状态
-    * */
 
-    init {
-        // If user credentials will be cached in local storage, it is recommended it be encrypted
-        // @see https://developer.android.com/training/articles/keystore
-        user = null
-    }
-
-    //登出功能
-    fun logout() {
-        user = null
-        dataSource.logout()
-        //登出并清除已登录数据的同时，应该退出MainActivity并回到LoginActivity
-    }
-
-    //登陆功能
-    fun login(username: String, password: String): Result<LoggedInUser> {
-        // handle login直接调用的LoginDataSource里面的login方法进行与数据源的判断，获取判断结果
-        val result = dataSource.login(username, password)
-        //成功就将已登录用户设置为成功返回的data中的用户
-        if (result is Result.Success) {
-            //setLoggedInUser(result.data)
-            setLoggedInUser(result.data)
-            //登陆状态是实时计算的，不需要手动设置，如果user = null就是没登陆，!=null就是已经登陆了。
+        //因为Android是不允许主线程中进行网络请求的
+        Log.d("我的登录", "Repository层login执行")
+        val userToInternet = UserInfo(email, password)
+        val result = try {
+            //获取网络请求的结果
+            Log.d("我的登录", "开始获取网络请求")
+            val loginResult = PetManagerNetWork.login(userToInternet)
+            Log.d("我的登录", "网络请求返回的message是${loginResult.message}")
+            if (loginResult.success) {
+                val loginResultBoolean = loginResult.data//布尔值
+                com.jichenhao.petmanager_jetpackcompose.data.local.Result.Success(loginResultBoolean)
+            } else {
+                com.jichenhao.petmanager_jetpackcompose.data.local.Result.Error(
+                    IOException("Error NetError ")
+                )
+            }
+        } catch (e: Exception) {
+            com.jichenhao.petmanager_jetpackcompose.data.local.Result.Error(
+                IOException(
+                    "Error logging in",
+                    e
+                )
+            )
         }
-        return result
+        //emit实际上是类似于调用LiveData的setValue方法通知数据变化
+        emit(result)
     }
 
-    private fun setLoggedInUser(userInfo: LoggedInUser) {
-        this.user = userInfo
-        // If user credentials will be cached in local storage, it is recommended it be encrypted
-        // @see https://developer.android.com/training/articles/keystore
-    }
 
     // 加载保存的凭证
     fun loadSavedUser(context: Context): UserInfo {
