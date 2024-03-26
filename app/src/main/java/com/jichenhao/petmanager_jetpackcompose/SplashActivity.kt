@@ -33,7 +33,7 @@ class SplashActivity : ComponentActivity() {
 
         // 延迟一段时间后启动主Activity
         lifecycleScope.launch {
-            delay(2000) // SPLASH_DELAY_MILLIS是你想要显示Splash的时间
+            delay(3000) // SPLASH_DELAY_MILLIS是你想要显示Splash的时间
             if (loadSavedIfUserLoggedIn(this@SplashActivity)) {
                 //如果已经登录，就读取已登录的用户email
                 val email = loadSavedLoggedInUserEmail(this@SplashActivity)
@@ -81,8 +81,7 @@ fun startLoginActivity(context: ComponentActivity) {
 @Composable
 fun SplashContent(onSplashFinished: () -> Unit) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        // 在这里添加你的Splash Screen内容，例如：
-        // Text("AppName", style = TextStyle(fontSize = 30.sp, color = Colors.White))
+        // Splash Screen内容
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
@@ -99,9 +98,11 @@ fun SplashContent(onSplashFinished: () -> Unit) {
         // 如果需要，可以添加动画或其他过渡效果
         // ...
     }
-    LaunchedEffect(Unit) {
+
+    //图片背后的加载
+    /*LaunchedEffect(Unit) {
         onSplashFinished()
-    }
+    }*/
 }
 
 

@@ -14,9 +14,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DisabledVisible
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.PanoramaFishEye
+import androidx.compose.material.icons.filled.RemoveRedEye
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
@@ -68,7 +71,6 @@ fun LoginScreen(
     /*
     * 但是如果是与Navigation关联的类，一般建议将ViewModel的依初始化放到NavGraph中
     * */
-
     //只要处于Login页面，就一定是
     //// Application中的登录状态为false && login_state_prefs中的登录状态为false
     //所以不必读取login_state_prefs中的数据，只需要登录成功的时候写入即可
@@ -176,7 +178,7 @@ fun LoginScreen(
             trailingIcon = {
                 IconButton(onClick = { showPassword = !showPassword }) {
                     Icon(
-                        imageVector = if (showPassword) Icons.Default.Lock else Icons.Filled.Lock,
+                        imageVector = if (showPassword) Icons.Default.RemoveRedEye else Icons.Filled.DisabledVisible,
                         contentDescription = "Toggle password visibility"
                     )
                 }
